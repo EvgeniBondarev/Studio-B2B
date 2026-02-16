@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS Прототип — Multi-Tenant</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%236366f1'/%3E%3Cstop offset='100%25' style='stop-color:%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23grad)'/%3E%3Cpath d='M30 35 L70 35 L70 45 L30 45 Z M30 55 L70 55 L70 65 L30 65 Z' fill='white'/%3E%3Ccircle cx='25' cy='40' r='3' fill='white'/%3E%3Ccircle cx='25' cy='60' r='3' fill='white'/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%236366f1'/%3E%3Cstop offset='100%25' style='stop-color:%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23grad)'/%3E%3Cpath d='M30 35 L70 35 L70 45 L30 45 Z M30 55 L70 55 L70 65 L30 65 Z' fill='white'/%3E%3Ccircle cx='25' cy='40' r='3' fill='white'/%3E%3Ccircle cx='25' cy='60' r='3' fill='white'/%3E%3C/svg%3E">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- Toast container -->
+<div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer"></div>
+
+<!-- LOGIN PAGE (shown when not authenticated) -->
+<div id="loginPage" class="d-none">
+    <div class="min-vh-100 d-flex align-items-center justify-content-center bg-light">
+        <div class="card shadow" style="width: 420px;">
+            <div class="card-body p-4">
+                <h3 class="text-center mb-1"><i class="bi bi-box-seam text-primary"></i> SaaS Platform</h3>
+                <p class="text-center text-muted mb-4">Управление заказами маркетплейсов</p>
+                <div id="loginForm">
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" id="loginEmail" value="admin@demo.ru">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Пароль</label>
+                        <input type="password" class="form-control" id="loginPassword" value="demo123">
+                    </div>
+                    <button class="btn btn-primary w-100 mb-3" onclick="doLogin()">
+                        <i class="bi bi-box-arrow-in-right"></i> Войти
+                    </button>
+                    <div class="text-center">
+                        <a href="#" onclick="showRegister(); return false;">Регистрация нового клиента</a>
+                    </div>
+                </div>
+                <div id="registerForm" class="d-none">
+                    <div class="mb-3">
+                        <label class="form-label">Название компании</label>
+                        <input type="text" class="form-control" placeholder="ООО Ромашка">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" placeholder="admin@romashka.ru">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Пароль</label>
+                        <input type="password" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Поддомен</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="romashka">
+                            <span class="input-group-text">.saas-platform.ru</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-success w-100 mb-3" onclick="doRegister()">
+                        <i class="bi bi-person-plus"></i> Создать аккаунт
+                    </button>
+                    <div class="text-center">
+                        <a href="#" onclick="showLogin(); return false;">Уже есть аккаунт? Войти</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN APP (shown when authenticated) -->
+<div id="mainApp" class="d-none">
+    <!-- Sidebar -->
+    <nav id="sidebar" class="sidebar bg-dark text-white">
+        <div class="sidebar-header p-3 border-bottom border-secondary">
+            <h5 class="mb-0"><i class="bi bi-box-seam text-info"></i> <span class="sidebar-text">SaaS Platform</span></h5>
+            <small class="text-muted sidebar-text">ООО "Демо Компания"</small>
+        </div>
+        <ul class="nav nav-pills flex-column mb-auto">
+            <li class="nav-item"><small class="text-muted px-3 sidebar-text">ОСНОВНОЕ</small></li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="#orders" data-page="orders" 
+                   data-bs-toggle="tooltip" data-bs-placement="right" 
+                   title="Управление заказами из всех маркетплейсов">
+                    <i class="bi bi-cart3"></i> <span class="sidebar-text">Заказы</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="#transactions" data-page="transactions"
+                   data-bs-toggle="tooltip" data-bs-placement="right"
+                   title="Журнал проведений и история транзакций">
+                    <i class="bi bi-arrow-left-right"></i> <span class="sidebar-text">Транзакции</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="#clients" data-page="clients"
+                   data-bs-toggle="tooltip" data-bs-placement="right"
+                   title="Управление клиентами и их настройками">
+                    <i class="bi bi-person"></i> <span class="sidebar-text">Клиенты</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="#suppliers" data-page="suppliers"
+                   data-bs-toggle="tooltip" data-bs-placement="right"
+                   title="База поставщиков и их реквизиты">
+                    <i class="bi bi-truck"></i> <span class="sidebar-text">Поставщики</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="#warehouses" data-page="warehouses"
+                   data-bs-toggle="tooltip" data-bs-placement="right"
+                   title="Управление складами и маппингом с 1С">
+                    <i class="bi bi-house-gear"></i> <span class="sidebar-text">Склады</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="#archive" data-page="archive"
+                   data-bs-toggle="tooltip" data-bs-placement="right"
+                   title="Архив старых заказов и документов">
+                    <i class="bi bi-archive"></i> <span class="sidebar-text">Архив</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="#notifications" data-page="notifications"
+                   data-bs-toggle="tooltip" data-bs-placement="right"
+                   title="Системные уведомления и оповещения">
+                    <i class="bi bi-bell"></i> <span class="sidebar-text">Уведомления</span>
+                </a>
+            </li>
+            <li class="nav-item mt-2"><small class="text-muted px-3 sidebar-text">НАСТРОЙКИ</small></li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="#settings" data-page="settings"
+                   data-bs-toggle="tooltip" data-bs-placement="right"
+                   title="Настройки компании и профиля">
+                    <i class="bi bi-gear"></i> <span class="sidebar-text">Компания</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="#users" data-page="users"
+                   data-bs-toggle="tooltip" data-bs-placement="right"
+                   title="Управление пользователями и доступами">
+                    <i class="bi bi-people"></i> <span class="sidebar-text">Пользователи</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="#roles" data-page="roles"
+                   data-bs-toggle="tooltip" data-bs-placement="right"
+                   title="Роли и права доступа в системе">
+                    <i class="bi bi-shield-check"></i> <span class="sidebar-text">Роли</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="#settings-1c" data-page="settings-1c"
+                   data-bs-toggle="tooltip" data-bs-placement="right"
+                   title="Настройки интеграции с 1С:Предприятие">
+                    <i class="bi bi-link-45deg"></i> <span class="sidebar-text">Интеграция 1С</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="#transaction-definitions" data-page="transaction-definitions"
+                   data-bs-toggle="tooltip" data-bs-placement="right"
+                   title="Конструктор бизнес-транзакций и проводок">
+                    <i class="bi bi-sliders"></i> <span class="sidebar-text">Конструктор</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="#status-transitions" data-page="status-transitions"
+                   data-bs-toggle="tooltip" data-bs-placement="right"
+                   title="Визуальный граф разрешенных переходов между статусами">
+                    <i class="bi bi-diagram-3"></i> <span class="sidebar-text">Граф переходов</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="#status-mappings" data-page="status-mappings"
+                   data-bs-toggle="tooltip" data-bs-placement="right"
+                   title="Маппинг статусов маркетплейсов и 1С. Решение 'Вавилонской башни статусов'">
+                    <i class="bi bi-arrow-left-right"></i> <span class="sidebar-text">Маппинг статусов</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="#hangfire" data-page="hangfire"
+                   data-bs-toggle="tooltip" data-bs-placement="right"
+                   title="Мониторинг фоновых задач и очередей Hangfire">
+                    <i class="bi bi-gear-wide-connected"></i> <span class="sidebar-text">Hangfire</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="#support" data-page="support"
+                   data-bs-toggle="tooltip" data-bs-placement="right"
+                   title="Техническая поддержка и тикеты">
+                    <i class="bi bi-headset"></i> <span class="sidebar-text">Поддержка</span>
+                </a>
+            </li>
+            <li class="nav-item mt-2"><small class="text-muted px-3 sidebar-text">АДМИНКА</small></li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="#saas-admin" data-page="saas-admin"
+                   data-bs-toggle="tooltip" data-bs-placement="right"
+                   title="SaaS Админ-панель - управление клиентами">
+                    <i class="bi bi-server"></i> <span class="sidebar-text">SaaS Админка</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Main content -->
+    <div id="mainContent" class="main-content">
+        <!-- Top navbar -->
+        <nav class="navbar navbar-expand navbar-light bg-white border-bottom px-3 sticky-top">
+            <button class="btn btn-sm btn-outline-secondary me-3" onclick="toggleSidebar()">
+                <i class="bi bi-list"></i>
+            </button>
+            <span class="navbar-text me-auto" id="pageTitle">Заказы</span>
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-sm btn-outline-secondary position-relative" onclick="navigateTo('notifications')">
+                    <i class="bi bi-bell"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">3</span>
+                </button>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle"></i> Админ
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><span class="dropdown-item-text text-muted">admin@demo.ru</span></li>
+                        <li><span class="dropdown-item-text text-muted">Роль: Администратор</span></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" onclick="doLogout(); return false;"><i class="bi bi-box-arrow-right"></i> Выйти</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Page content container -->
+        <div class="p-4" id="pageContent">
+            <!-- Pages rendered here by JS -->
+        </div>
+    </div>
+</div>
+
+<!-- Universal Modal -->
+<div class="modal fade" id="universalModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Заголовок</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+            <div class="modal-footer" id="modalFooter"></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="data.js"></script>
+<script src="pages.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

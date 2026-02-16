@@ -1,0 +1,419 @@
+/* Sidebar */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 100vh;
+    overflow-y: auto;
+    transition: width 0.3s ease;
+    z-index: 1040;
+}
+
+.sidebar.collapsed {
+    width: 60px;
+}
+
+.sidebar.collapsed .sidebar-text {
+    display: none;
+}
+
+.sidebar.collapsed .sidebar-header small {
+    display: none;
+}
+
+.sidebar .nav-link {
+    border-radius: 6px;
+    margin: 2px 0;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.sidebar .nav-link:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.sidebar .nav-link.active {
+    background: rgba(13, 110, 253, 0.3);
+    color: #fff !important;
+    font-weight: 600;
+}
+
+/* Main content */
+.main-content {
+    margin-left: 250px;
+    min-height: 100vh;
+    background: #f8f9fa;
+    transition: margin-left 0.3s ease;
+}
+
+.main-content.expanded {
+    margin-left: 60px;
+}
+
+/* Status badges */
+.status-new { background: #6c757d; color: #fff; }
+.status-in-work { background: #0d6efd; color: #fff; }
+.status-ordered { background: #6f42c1; color: #fff; }
+.status-shipped { background: #fd7e14; color: #fff; }
+.status-delivered { background: #198754; color: #fff; }
+.status-returned { background: #dc3545; color: #fff; }
+.status-cancelled { background: #adb5bd; color: #fff; }
+
+.badge-status {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+/* 1C Status badges */
+.onec-pending { background: #ffc107; color: #000; }
+.onec-success { background: #198754; color: #fff; }
+.onec-error { background: #dc3545; color: #fff; }
+
+/* Marketplace badges */
+.mp-ozon { background: #005bff; color: #fff; }
+.mp-wildberries { background: #cb11ab; color: #fff; }
+.mp-yandex { background: #ffcc00; color: #000; }
+
+/* Filter chips */
+.chip {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border: 1px solid #dee2e6;
+    background: #fff;
+    margin: 2px;
+    transition: all 0.2s;
+}
+
+.chip:hover {
+    background: #e9ecef;
+}
+
+.chip.active {
+    background: #0d6efd;
+    color: #fff;
+    border-color: #0d6efd;
+}
+
+/* Cards */
+.stat-card {
+    border-left: 4px solid;
+    border-radius: 8px;
+}
+
+.stat-card .stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+/* Table hover */
+.table-clickable tbody tr {
+    cursor: pointer;
+}
+
+/* Sortable headers */
+.sortable {
+    cursor: pointer;
+    user-select: none;
+}
+.sortable:hover {
+    background: #e9ecef;
+}
+
+.table-clickable tbody tr:hover {
+    background: #e8f0fe;
+}
+
+/* Transaction detail row */
+.detail-row {
+    background: #f8f9fa;
+    font-size: 0.85rem;
+}
+
+/* SaaS Admin Dashboard - Dark Theme */
+.saas-admin-dashboard {
+    background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
+    min-height: 100vh;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+.saas-header {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    padding: 24px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.saas-metric-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.3s ease;
+}
+
+.saas-metric-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.metric-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+}
+
+.metric-content {
+    flex: 1;
+}
+
+.metric-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 4px;
+}
+
+.metric-label {
+    font-size: 12px;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.metric-details {
+    font-size: 11px;
+}
+
+.saas-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.saas-card-header {
+    background: rgba(255, 255, 255, 0.08);
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.saas-card-body {
+    padding: 20px;
+}
+
+/* Dark Table */
+.table-dark {
+    --bs-table-bg: transparent;
+    --bs-table-striped-bg: rgba(255, 255, 255, 0.02);
+    --bs-table-hover-bg: rgba(255, 255, 255, 0.05);
+}
+
+.table-dark th {
+    color: #e5e7eb;
+    border-color: rgba(255, 255, 255, 0.1);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+}
+
+.table-dark td {
+    color: #d1d5db;
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+.table-dark tbody tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Dark Timeline */
+.saas-timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.saas-timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.saas-timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.saas-timeline-marker {
+    position: absolute;
+    left: -22px;
+    top: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid #6366f1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    color: #6366f1;
+}
+
+.saas-timeline-content {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Badge colors */
+.badge.bg-purple {
+    background-color: #8b5cf6 !important;
+}
+
+/* Original Timeline (for non-admin pages) */
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e5e7eb;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -22px;
+    top: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid #6366f1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    color: #6366f1;
+}
+
+.timeline-content {
+    background: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .saas-admin-dashboard {
+        padding: 10px;
+    }
+    
+    .saas-header {
+        padding: 16px;
+    }
+    
+    .saas-metric-card {
+        padding: 16px;
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .metric-icon {
+        margin-bottom: 12px;
+    }
+    
+    .saas-card-header {
+        padding: 12px 16px;
+    }
+    
+    .saas-card-body {
+        padding: 16px;
+    }
+    
+    .saas-timeline {
+        padding-left: 20px;
+    }
+    
+    .saas-timeline-marker {
+        left: -16px;
+        width: 12px;
+        height: 12px;
+        font-size: 6px;
+    }
+    
+    .saas-timeline-content {
+        padding: 8px 12px;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 60px;
+    }
+    .sidebar .sidebar-text {
+        display: none;
+    }
+    .main-content {
+        margin-left: 60px;
+    }
+}
+
+/* Form field builder */
+.field-row {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 8px;
+}
+
+/* Smooth page transitions */
+#pageContent {
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}

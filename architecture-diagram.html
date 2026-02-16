@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Архитектура SaaS - Схема модулей</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏗️</text></svg>">
+    <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://unpkg.com/@antv/g6@4.8.24/dist/g6.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section h2 {
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .tech-stack {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .tech-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .tech-card h3 {
+            margin: 0 0 10px 0;
+            color: #667eea;
+        }
+        
+        .tech-card p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .diagram-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            text-align: center;
+            min-height: 400px;
+            overflow-x: auto;
+            overflow-y: auto;
+        }
+        
+        .diagram-container svg {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .sequence-diagram-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            min-height: 600px;
+            overflow-x: auto;
+            overflow-y: auto;
+        }
+        
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+        
+        .flow-diagram {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .module-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-top: 4px solid #667eea;
+        }
+        
+        .module-card h4 {
+            margin: 0 0 15px 0;
+            color: #333;
+        }
+        
+        .module-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .module-list li {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9em;
+        }
+        
+        .module-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .data-flow {
+            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .entity-details {
+            background: #f0f8ff;
+            border-left: 4px solid #4169e1;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        
+        .entity-name {
+            font-weight: bold;
+            color: #4169e1;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .entity-description {
+            margin: 5px 0;
+            font-size: 0.9em;
+            color: #555;
+        }
+        
+        .transition-arrow {
+            color: #ff6b6b;
+            font-weight: bold;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .database-name {
+            background: #e8f5e8;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8em;
+        }
+        
+        .ip-address {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8em;
+        }
+        
+        .step-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 25px;
+            font-size: 0.8em;
+            margin-right: 10px;
+        }
+        
+        .step-container {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .step-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .step-details {
+            font-size: 0.9em;
+            color: #666;
+            line-height: 1.5;
+        }
+        
+        .glossary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .glossary-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border-left: 5px solid #667eea;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .glossary-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+        }
+        
+        .glossary-card h4 {
+            margin: 0 0 15px 0;
+            color: #667eea;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+        
+        .glossary-en {
+            background: #e3f2fd;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-size: 0.9em;
+            color: #1565c0;
+            border-left: 3px solid #1976d2;
+        }
+        
+        .glossary-ru {
+            background: #f3e5f5;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-size: 0.9em;
+            color: #7b1fa2;
+            border-left: 3px solid #8e24aa;
+        }
+        
+        .bilingual-description {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+        }
+        
+        .bilingual-en {
+            font-weight: 600;
+            color: #1976d2;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+        
+        .bilingual-ru {
+            color: #555;
+            font-size: 0.9em;
+            padding-top: 5px;
+            border-top: 1px dashed #ddd;
+        }
+        
+        .russian-only {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+            color: #333;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏗️ Архитектура Multi-Tenant SaaS</h1>
+            <p>Полная схема модулей и связей для системы управления заказами</p>
+        </div>
+        
+        <div class="content">
+            <!-- Glossary Section -->
+            <div class="section">
+                <h2>📚 Key Concepts & Definitions</h2>
+                <div class="glossary-grid">
+                    <div class="glossary-card">
+                        <h4>🏢 B2B SaaS Multi-Tenant</h4>
+                        <p class="glossary-en">Business-to-Business Software as a Service architecture where multiple organizations (tenants) share the same application infrastructure while maintaining complete data isolation through separate databases per tenant.</p>
+                        <p class="glossary-ru">B2B-программа как услуга с мульти-тенантной архитектурой, где несколько организаций (тенантов) используют одно приложение, но с полной изоляцией данных через отдельные базы данных для каждого клиента.</p>
+                    </div>
+                    
+                    <div class="glossary-card">
+                        <h4>🔐 Permission-Based Authorization</h4>
+                        <p class="glossary-en">Dynamic access control system where permissions (atomic actions) are assigned to roles, and roles are assigned to users. Unlike static role-based systems, permissions can be combined flexibly at runtime.</p>
+                        <p class="glossary-ru">Динамическая система контроля доступа, где права (атомарные действия) назначаются ролям, а роли — пользователям. В отличие от статичных ролевых систем, права могут гибко комбинироваться во время выполнения.</p>
+                    </div>
+                    
+                    <div class="glossary-card">
+                        <h4>🔄 CQRS with MediatR</h4>
+                        <p class="glossary-en">Command Query Responsibility Segregation pattern separating read (queries) and write (commands) operations. MediatR acts as a mediator implementing the mediator pattern for in-process messaging.</p>
+                        <p class="glossary-ru">Разделение ответственности команд и запросов (CQRS) с паттерном "Посредник". MediatR реализует обмен сообщениями внутри процесса, разделяя операции чтения и записи.</p>
+                    </div>
+                    
+                    <div class="glossary-card">
+                        <h4>🏛️ Clean Architecture</h4>
+                        <p class="glossary-en">Architectural pattern with dependency inversion, where business logic is independent of frameworks and UI. Dependencies flow inward: Presentation → Application → Domain → Infrastructure.</p>
+                        <p class="glossary-ru">Архитектурный паттерн с инверсией зависимостей, где бизнес-логика не зависит от фреймворков и UI. Зависимости направлены внутрь: Представление → Приложение → Домен → Инфраструктура.</p>
+                    </div>
+                    
+                    <div class="glossary-card">
+                        <h4>📦 Vertical Slice Architecture</h4>
+                        <p class="glossary-en">Organizing code by features instead of layers. Each feature contains its own controllers, services, and data access, making the codebase more maintainable and reducing coupling.</p>
+                        <p class="glossary-ru">Организация кода по функциям вместо слоев. Каждая функция содержит свои контроллеры, сервисы и доступ к данным, что делает код более поддерживаемым и уменьшает связанность.</p>
+                    </div>
+                    
+                    <div class="glossary-card">
+                        <h4>🗃️ Domain-Driven Design (DDD)</h4>
+                        <p class="glossary-en">Approach to software development focusing on the core domain and domain logic. Uses rich domain models, value objects, aggregates, and ubiquitous language to solve complex business problems.</p>
+                        <p class="glossary-ru">Подход к разработке ПО, сфокусированный на основной предметной области и бизнес-логике. Использует богатые доменные модели, объекты-значения, агрегаты и единый язык для решения сложных бизнес-задач.</p>
+                    </div>
+                    
+                    <div class="glossary-card">
+                        <h4>🔄 Transaction Engine</h4>
+                        <p class="glossary-en">Dynamic system that executes business transactions based on configurable definitions. Allows users to create custom transaction types with forms, validation rules, and external system integrations.</p>
+                        <p class="glossary-ru">Динамическая система выполнения бизнес-транзакций на основе настраиваемых определений. Позволяет пользователям создавать кастомные типы транзакций с формами, правилами валидации и интеграциями с внешними системами.</p>
+                    </div>
+                    
+                    <div class="glossary-card">
+                        <h4>🔌 Outbox Pattern</h4>
+                        <p class="glossary-en">Reliability pattern for ensuring event publishing. Events are stored in an outbox table within the same transaction, then a separate process publishes them to external systems, preventing data loss.</p>
+                        <p class="glossary-ru">Паттерн надежности для гарантированной публикации событий. События сохраняются в таблице outbox в той же транзакции, затем отдельный процесс публикует их во внешние системы, предотвращая потерю данных.</p>
+                    </div>
+                    
+                    <div class="glossary-card">
+                        <h4>🎯 Row-Level Security</h4>
+                        <p class="glossary-en">Data access control mechanism that restricts data access at the row level based on user identity or roles. In multi-tenant systems, ensures users can only access data belonging to their tenant.</p>
+                        <p class="glossary-ru">Механизм контроля доступа к данным на уровне строк на основе идентификации пользователя или ролей. В мульти-тенантных системах обеспечивает доступ пользователей только к данным их тенанта.</p>
+                    </div>
+                    
+                    <div class="glossary-card">
+                        <h4>🔄 Event Sourcing</h4>
+                        <p class="glossary-en">Pattern where state changes are recorded as a sequence of events. Instead of storing current state, all events are stored, allowing reconstruction of state at any point in time.</p>
+                        <p class="glossary-ru">Паттерн, где изменения состояния записываются как последовательность событий. Вместо хранения текущего состояния сохраняются все события, позволяя восстановить состояние в любой момент времени.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Технологический стек -->
+            <div class="section">
+                <h2>🔧 Технологический стек</h2>
+                <div class="tech-stack">
+                    <div class="tech-card">
+                        <h3>Backend</h3>
+                        <p>ASP.NET Core 8, C#, EF Core, MediatR, Hangfire</p>
+                    </div>
+                    <div class="tech-card">
+                        <h3>Frontend</h3>
+                        <p>Blazor Server + MudBlazor / MVC + Bootstrap</p>
+                    </div>
+                    <div class="tech-card">
+                        <h3>Базы данных</h3>
+                        <p>MS SQL/PostgreSQL (Master + N Tenant DB)</p>
+                    </div>
+                    <div class="tech-card">
+                        <h3>Инфраструктура</h3>
+                        <p>Redis, Docker, Nginx, CI/CD</p>
+                    </div>
+                    <div class="tech-card">
+                        <h3>Интеграции</h3>
+                        <p>1С:Предприятие, Ozon, Wildberries, Yandex Market</p>
+                    </div>
+                    <div class="tech-card">
+                        <h3>Аутентификация</h3>
+                        <p>ASP.NET Core Identity, JWT, Permission-Based</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Общая архитектура с описаниями -->
+            <div class="section">
+                <h2>🏛️ Общая архитектура системы</h2>
+                <p><strong>Поток запроса:</strong> Пользователь → DNS → Load Balancer → Tenant Middleware → Authentication → Business Logic → Database</p>
+                
+                <div class="diagram-container">
+                    <div class="mermaid">
+                        graph TB
+                            subgraph "Клиентский доступ"
+                                A[client1.mysaas.com<br/><span class="ip-address">192.168.1.100</span>]
+                                B[client2.mysaas.com<br/><span class="ip-address">192.168.1.101</span>]
+                                C[admin.mysaas.com<br/><span class="ip-address">192.168.1.10</span>]
+                            end
+                            
+                            subgraph "Load Balancer"
+                                LB[Nginx<br/><span class="ip-address">192.168.1.5</span>]
+                            end
+                            
+                            subgraph "ASP.NET Core Application"
+                                MW[TenantMiddleware<br/>Определяет тенанта по subdomain]
+                                AUTH[Authentication<br/>JWT + Identity]
+                                PERM[Permission-Based<br/>Authorization]
+                                
+                                subgraph "Web Layer"
+                                    UI[Blazor/MVC UI<br/>Razor Pages]
+                                    API[REST API<br/>Controllers]
+                                    WH[Webhooks<br/>External integrations]
+                                end
+                                
+                                subgraph "Application Layer"
+                                    CMD[Commands<br/>Create/Update/Delete]
+                                    QRY[Queries<br/>Read operations]
+                                    EH[Event Handlers<br/>Domain Events]
+                                end
+                                
+                                subgraph "Domain Layer"
+                                    ENT[Entities<br/>Order, Tenant, User]
+                                    VO[Value Objects<br/>Email, Money]
+                                    DOM[Domain Logic<br/>Business rules]
+                                end
+                                
+                                subgraph "Infrastructure Layer"
+                                    EF[EF Core<br/>ORM]
+                                    CACHE[Redis Cache<br/>Distributed]
+                                    BG[Hangfire<br/>Background Jobs]
+                                    HTTP[HTTP Clients<br/>External APIs]
+                                end
+                            end
+                            
+                            subgraph "Базы данных"
+                                MASTER[(Master DB<br/><span class="database-name">mysaas_master</span><br/>Tenants, Users, Billing)]
+                                T1[(Client1 DB<br/><span class="database-name">client1_orders</span><br/>Orders, Transactions)]
+                                T2[(Client2 DB<br/><span class="database-name">client2_orders</span><br/>Orders, Transactions)]
+                                REDIS[(Redis<br/><span class="database-name">redis:6379</span><br/>Cache, Sessions)]
+                            end
+                            
+                            subgraph "Внешние сервисы"
+                                ONEC[1C:Предприятие<br/><span class="ip-address">10.0.1.50</span>]
+                                OZON[Ozon API<br/>api.ozon.ru]
+                                WB[Wildberries API<br/>api.wildberries.ru]
+                                EMAIL[SendGrid<br/>smtp.sendgrid.net]
+                            end
+                            
+                            A -->|DNS resolves| LB
+                            B -->|DNS resolves| LB
+                            C -->|DNS resolves| LB
+                            LB -->|HTTPS| MW
+                            MW -->|Extract subdomain| AUTH
+                            AUTH -->|Validate JWT| PERM
+                            PERM -->|Check permissions| UI
+                            PERM -->|Check permissions| API
+                            
+                            UI -->|User actions| CMD
+                            API -->|REST calls| CMD
+                            WH -->|External events| CMD
+                            
+                            CMD -->|Business logic| ENT
+                            QRY -->|Data access| ENT
+                            EH -->|Async processing| ENT
+                            
+                            ENT -->|Persist| EF
+                            DOM -->|Validate| EF
+                            
+                            EF -->|Read/Write| MASTER
+                            EF -->|Tenant context| T1
+                            EF -->|Tenant context| T2
+                            
+                            CACHE -->|Get/Set| REDIS
+                            BG -->|Job storage| REDIS
+                            
+                            HTTP -->|POST/GET| ONEC
+                            HTTP -->|API calls| OZON
+                            HTTP -->|API calls| WB
+                            HTTP -->|Send emails| EMAIL
+                            
+                            EH -->|Enqueue| BG
+                            
+                            style MASTER fill:#ff9999,stroke:#ff6666,stroke-width:2px
+                            style T1 fill:#99ff99,stroke:#66cc66,stroke-width:2px
+                            style T2 fill:#99ff99,stroke:#66cc66,stroke-width:2px
+                            style REDIS fill:#ffcc99,stroke:#ff9966,stroke-width:2px
+                            style MW fill:#e1f5fe,stroke:#81d4fa,stroke-width:2px
+                            style AUTH fill:#f3e5f5,stroke:#ce93d8,stroke-width:2px
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">TenantMiddleware</div>
+                    <div class="russian-only">
+                        Извлекает subdomain из URL (client1.mysaas.com → "client1") и определяет TenantId из Master DB. Реализует стратегию определения тенанта с кэшированием для производительности.
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">Permission-Based Authorization</div>
+                    <div class="russian-only">
+                        Динамическая система проверки прав с использованием ASP.NET Core Identity и RoleClaims. Валидирует права пользователей во время выполнения на основе настраиваемых маппингов роль-право в базе тенанта.
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">EF Core Tenant Context</div>
+                    <div class="russian-only">
+                        Динамически переключается между базами данных в зависимости от TenantId. Использует фабричный паттерн для создания экземпляров DbContext с tenant-specific строками подключения для полной изоляции данных.
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">Command Handlers (CQRS)</div>
+                    <div class="russian-only">
+                        Обрабатывают операции записи (Create, Update, Delete) с использованием MediatR. Реализуют валидацию бизнес-логики, публикацию доменных событий и управление транзакциями с паттерном Unit of Work.
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">Query Handlers (CQRS)</div>
+                    <div class="russian-only">
+                        Обрабатывают операции чтения с оптимизированными паттернами доступа к данным. Реализуют стратегии кэширования, пагинацию и фильтрацию для эффективного извлечения данных из баз тенантов.
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">Domain Entities</div>
+                    <div class="russian-only">
+                        Богатые доменные модели, содержащие бизнес-логику и правила валидации. Реализуют DDD паттерны: агрегаты, объекты-значения и доменные события для инкапсуляции бизнес-поведения.
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">Hangfire Background Jobs</div>
+                    <div class="russian-only">
+                        Надежная обработка фоновых задач с изоляцией по тенантам. Использует отдельные очереди для каждого тенанта и автоматические повторы для интеграций с внешними API, синхронизации с 1С и задач обработки данных.
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">Redis Distributed Cache</div>
+                    <div class="russian-only">
+                        Высокопроизводительный слой кэширования с изоляцией по тенантам. Хранит часто используемые данные, сессии пользователей и состояние приложения с настраиваемым TTL и стратегиями инвалидации кэша.
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">1C Integration Service</div>
+                    <div class="russian-only">
+                        RESTful API клиент для интеграции с 1С:Предприятие. Реализует создание документов (ПоступлениеТоваров, ПеремещениеТоваров), синхронизацию статусов и обработку ошибок с механизмами повтора и outbox паттерном.
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">Marketplace Adapters</div>
+                    <div class="russian-only">
+                        Унифицированный интерфейс для интеграций с несколькими маркетплейсами (Ozon, Wildberries, Yandex Market). Реализует маппинг статусов, pipeline обогащения заказов и стандартизированные модели данных с использованием паттерна адаптер.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Структура проекта -->
+            <div class="section">
+                <h2>📁 Структура проекта (Clean Architecture)</h2>
+                <div class="diagram-container">
+                    <div class="mermaid">
+                        graph TD
+                            subgraph "MySaaS.Web"
+                                WEB1[Components/]
+                                WEB2[Controllers/]
+                                WEB3[Middleware/]
+                                WEB4[Extensions/]
+                            end
+                            
+                            subgraph "MySaaS.Application"
+                                APP1[Features/]
+                                APP2[Common/]
+                                APP3[Interfaces/]
+                                
+                                subgraph "Features"
+                                    F1[Orders/]
+                                    F2[Transactions/]
+                                    F3[Tenants/]
+                                    F4[Integrations/]
+                                end
+                            end
+                            
+                            subgraph "MySaaS.Domain"
+                                DOM1[Entities/]
+                                DOM2[ValueObjects/]
+                                DOM3[Enums/]
+                                
+                                subgraph "Entities"
+                                    E1[Orders/]
+                                    E2[Tenants/]
+                                    E3[Transactions/]
+                                end
+                            end
+                            
+                            subgraph "MySaaS.Infrastructure"
+                                INF1[Persistence/]
+                                INF2[Integrations/]
+                                INF3[Services/]
+                                INF4[BackgroundJobs/]
+                                INF5[Auth/]
+                                
+                                subgraph "Persistence"
+                                    P1[Master/]
+                                    P2[Tenant/]
+                                end
+                                
+                                subgraph "Integrations"
+                                    I1[Marketplaces/]
+                                    I2[OneC/]
+                                    I3[Email/]
+                                end
+                            end
+                            
+                            subgraph "MySaaS.Shared"
+                                SH1[DTOs/]
+                                SH2[Contracts/]
+                                SH3[Enums/]
+                            end
+                            
+                            WEB1 --> APP1
+                            WEB2 --> APP1
+                            APP1 --> DOM1
+                            APP2 --> DOM2
+                            APP3 --> INF1
+                            INF1 --> P1
+                            INF1 --> P2
+                            INF2 --> I1
+                            INF2 --> I2
+                            
+                            style WEB1 fill:#e1f5fe
+                            style APP1 fill:#f3e5f5
+                            style DOM1 fill:#e8f5e8
+                            style INF1 fill:#fff3e0
+                            style SH1 fill:#fce4ec
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Модули системы -->
+            <div class="section">
+                <h2>🧩 Ключевые модули системы</h2>
+                <div class="module-grid">
+                    <div class="module-card">
+                        <h4>🔐 Аутентификация и Identity</h4>
+                        <ul class="module-list">
+                            <li>Регистрация владельца аккаунта</li>
+                            <li>Приглашение сотрудников</li>
+                            <li>Подтверждение email</li>
+                            <li>Восстановление пароля</li>
+                            <li>JWT токены</li>
+                            <li>Multi-tenant пользователи</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="module-card">
+                        <h4>🛡️ Авторизация на основе прав</h4>
+                        <ul class="module-list">
+                            <li>Динамические права (Permissions)</li>
+                            <li>Роли с настраиваемыми правами</li>
+                            <li>PermissionPolicyProvider</li>
+                            <li>Row-level security</li>
+                            <li>UI для управления ролями</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="module-card">
+                        <h4>🏢 Multi-Tenant Core</h4>
+                        <ul class="module-list">
+                            <li>TenantResolutionMiddleware</li>
+                            <li>Динамические ConnectionString</li>
+                            <li>Изоляция данных</li>
+                            <li>Master/Tenant DbContext</li>
+                            <li>Автоматическое создание БД</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="module-card">
+                        <h4>📦 Управление заказами</h4>
+                        <ul class="module-list">
+                            <li>CRUD операции</li>
+                            <li>Статусы заказов</li>
+                            <li>Фильтрация и поиск</li>
+                            <li>Валидация бизнес-правил</li>
+                            <li>История изменений</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="module-card">
+                        <h4>🔄 Конструктор транзакций</h4>
+                        <ul class="module-list">
+                            <li>TransactionDefinition</li>
+                            <li>TransactionRecord</li>
+                            <li>Динамические формы</li>
+                            <li>JSON-схемы</li>
+                            <li>Интеграция с 1С</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="module-card">
+                        <h4>🔌 Интеграции</h4>
+                        <ul class="module-list">
+                            <li>Адаптеры маркетплейсов</li>
+                            <li>IOrderAdapter интерфейс</li>
+                            <li>Маппинг статусов</li>
+                            <li>Enricher Pipeline</li>
+                            <li>StatusResolver</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="module-card">
+                        <h4>🗃️ Интеграция с 1С</h4>
+                        <ul class="module-list">
+                            <li>MovementOfGoods</li>
+                            <li>ReceiptOfGoods</li>
+                            <li>OneCApiClient</li>
+                            <li>Outbox паттерн</li>
+                            <li>Идемпотентность</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="module-card">
+                        <h4>⚡ Кэширование</h4>
+                        <ul class="module-list">
+                            <li>Redis распределенный кэш</li>
+                            <li>Глобальный кэш</li>
+                            <li>Tenant-кэш</li>
+                            <li>Query caching</li>
+                            <li>Response caching</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="module-card">
+                        <h4>🔄 Фоновые задачи</h4>
+                        <ul class="module-list">
+                            <li>Hangfire Multi-Tenant</li>
+                            <li>ImportOrdersJob</li>
+                            <li>SyncTo1CJob</li>
+                            <li>ArchiveOldOrdersJob</li>
+                            <li>TenantBackupJob</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="module-card">
+                        <h4>📊 Seed Data</h4>
+                        <ul class="module-list">
+                            <li>TenantSeeder</li>
+                            <li>Идемпотентность</li>
+                            <li>Статусы заказов</li>
+                            <li>Типы транзакций</li>
+                            <li>Роли и права</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="module-card">
+                        <h4>🌐 HTTP клиенты</h4>
+                        <ul class="module-list">
+                            <li>IHttpClientFactory</li>
+                            <li>DelegatingHandler pipeline</li>
+                            <li>Логирование запросов</li>
+                            <li>Retries и Rate Limiting</li>
+                            <li>Изоляция API</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="module-card">
+                        <h4>🎨 UI Components</h4>
+                        <ul class="module-list">
+                            <li>DataTableViewComponent</li>
+                            <li>PaginationViewComponent</li>
+                            <li>TenantPageModel</li>
+                            <li>View Components</li>
+                            <li>Blazor Components</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Полный сценарий: Регистрация → Проведение заказа -->
+            <div class="section">
+                <h2>🔄 Полный сценарий: Регистрация пользователя и проведение заказа</h2>
+                <p><strong>Сценарий:</strong> Новый пользователь регистрируется → Создается tenant → Пользователь входит → Создает заказ → Проводит транзакцию → Синхронизация с 1С</p>
+                
+                <div class="step-container">
+                    <div class="step-title"><span class="step-number">1</span>Регистрация нового тенанта</div>
+                    <div class="step-details">
+                        <strong>Запрос:</strong> POST /api/auth/register<br/>
+                        <strong>Данные:</strong> {email: "ivan@company.ru", password: "****", companyName: "ООО Ромашка", subdomain: "romashka"}<br/>
+                        <strong>IP:</strong> <span class="ip-address">192.168.1.100</span> → <span class="ip-address">192.168.1.5</span> (Load Balancer)
+                    </div>
+                </div>
+                
+                <div class="sequence-diagram-container">
+                    <div class="mermaid">
+                        sequenceDiagram
+                            participant U as Пользователь<br/><span class="ip-address">192.168.1.100</span>
+                            participant LB as Nginx<br/><span class="ip-address">192.168.1.5</span>
+                            participant APP as ASP.NET Core
+                            participant MW as TenantMiddleware
+                            participant AUTH as AuthService
+                            participant MASTER as Master DB<br/><span class="database-name">mysaas_master</span>
+                            participant DB as New Tenant DB<br/><span class="database-name">romashka_orders</span>
+                            participant SEED as TenantSeeder
+                            participant EMAIL as SendGrid
+                            
+                            Note over U,EMAIL: Этап 1: Регистрация нового тенанта
+                            U->>LB: POST /api/auth/register
+                            LB->>APP: HTTPS Forward
+                            APP->>MW: No tenant (registration)
+                            MW->>AUTH: CreateTenantCommand
+                            AUTH->>MASTER: INSERT INTO Tenants<br/>(Name="ООО Ромашка", Subdomain="romashka")
+                            MASTER-->>AUTH: TenantId = guid-123
+                            
+                            Note over AUTH,DB: Создание базы данных тенанта
+                            AUTH->>DB: CREATE DATABASE romashka_orders
+                            AUTH->>DB: APPLY MIGRATIONS
+                            AUTH->>SEED: SeedAsync(romashka_orders)
+                            SEED->>DB: INSERT Statuses (New, InProgress, Shipped)
+                            SEED->>DB: INSERT TransactionDefinitions
+                            SEED->>DB: INSERT Roles (Admin, Manager)
+                            SEED-->>AUTH: Seeding completed
+                            
+                            Note over AUTH,DB: Создание пользователя-администратора
+                            AUTH->>DB: INSERT AspNetUsers<br/>(Email="ivan@company.ru", Role="Admin")
+                            AUTH->>MASTER: UPDATE Tenant SET IsActive=true
+                            AUTH->>EMAIL: Send confirmation email
+                            
+                            AUTH-->>APP: RegistrationResult.Success
+                            APP-->>U: 201 Created + JWT Token
+                    </div>
+                </div>
+                
+                <div class="transition-arrow">↓ Переход к этапу 2: Вход в систему ↓</div>
+                
+                <div class="step-container">
+                    <div class="step-title"><span class="step-number">2</span>Вход в систему (Authentication)</div>
+                    <div class="step-details">
+                        <strong>Запрос:</strong> POST /api/auth/login<br/>
+                        <strong>URL:</strong> https://romashka.mysaas.com<br/>
+                        <strong>Данные:</strong> {email: "ivan@company.ru", password: "****"}<br/>
+                        <strong>Tenant:</strong> romashka (из subdomain)
+                    </div>
+                </div>
+                
+                <div class="sequence-diagram-container">
+                    <div class="mermaid">
+                        sequenceDiagram
+                            participant U as Пользователь<br/>romashka.mysaas.com
+                            participant MW as TenantMiddleware
+                            participant AUTH as AuthService
+                            participant MASTER as Master DB
+                            participant DB as Tenant DB<br/><span class="database-name">romashka_orders</span>
+                            participant REDIS as Redis<br/><span class="database-name">redis:6379</span>
+                            
+                            Note over U,REDIS: Этап 2: Аутентификация в tenant
+                            U->>MW: POST /api/auth/login<br/>Host: romashka.mysaas.com
+                            MW->>MW: Extract subdomain "romashka"
+                            MW->>MASTER: SELECT * FROM Tenants<br/>WHERE Subdomain='romashka'
+                            MASTER-->>MW: Tenant {Id=guid-123, ConnectionString="..."}
+                            MW->>AUTH: AuthenticateCommand<br/>{TenantId=guid-123, Email="ivan@company.ru"}
+                            
+                            Note over AUTH,DB: Проверка в базе тенанта
+                            AUTH->>DB: SELECT * FROM AspNetUsers<br/>WHERE Email='ivan@company.ru'
+                            DB-->>AUTH: User {Id=user-456, Role="Admin"}
+                            AUTH->>DB: SELECT p.ClaimValue FROM AspNetRoleClaims p<br/>JOIN AspNetUserRoles r ON r.RoleId = p.RoleId<br/>WHERE r.UserId = 'user-456'
+                            DB-->>AUTH: Permissions ["Orders.Create", "Orders.View", "Transactions.Execute"]
+                            
+                            Note over AUTH,REDIS: Генерация JWT токена
+                            AUTH->>REDIS: SET cache:token:user-456 3600s
+                            AUTH-->>MW: JWT Token with claims:<br/>{sub=user-456, tenant=guid-123, permissions=[...]}
+                            MW-->>U: 200 OK + JWT Token
+                    </div>
+                </div>
+                
+                <div class="transition-arrow">↓ Переход к этапу 3: Загрузка заказа из маркетплейса ↓</div>
+                
+                <div class="step-container">
+                    <div class="step-title"><span class="step-number">3</span>Загрузка заказа из маркетплейса</div>
+                    <div class="step-details">
+                        <strong>Запрос:</strong> POST /api/integrations/import-orders<br/>
+                        <strong>Источник:</strong> Ozon API<br/>
+                        <strong>Данные:</strong> {marketplace: "Ozon", dateFrom: "2024-01-15", dateTo: "2024-01-15"}<br/>
+                        <strong>Tenant Context:</strong> romashka_orders DB
+                    </div>
+                </div>
+                
+                <div class="sequence-diagram-container">
+                    <div class="mermaid">
+                        sequenceDiagram
+                            participant BG as Hangfire<br/>Background Job
+                            participant OZON as Ozon API<br/>api.ozon.ru
+                            participant ADAPTER as OzonAdapter<br/>IOrderAdapter
+                            participant RESOLVER as StatusResolver<br/>Mapping Service
+                            participant DB as Tenant DB<br/><span class="database-name">romashka_orders</span>
+                            participant REDIS as Redis<br/><span class="database-name">redis:6379</span>
+                            
+                            Note over BG,REDIS: Этап 3: Загрузка заказов из маркетплейса
+                            BG->>BG: ImportOrdersJob.Execute<br/>TenantId=guid-123, DateRange=[2024-01-15]
+                            
+                            Note over BG,OZON: Получение заказов из Ozon
+                            BG->>OZON: GET /v3/order/list<br/>?date_from=2024-01-15&date_to=2024-01-15
+                            OZON-->>BG: {orders: [{order_id: "12345", status: "awaiting_packaging", ...}]}
+                            
+                            Note over BG,ADAPTER: Преобразование в универсальную модель
+                            BG->>ADAPTER: GetOrdersAsync(from, to)
+                            ADAPTER->>ADAPTER: MapToUniversalModel(ozonOrders)
+                            ADAPTER->>RESOLVER: ResolveStatus("awaiting_packaging", MarketplaceType.Ozon)
+                            
+                            Note over RESOLVER,DB: Маппинг статусов
+                            RESOLVER->>REDIS: GET status_map:guid-123:Ozon:awaiting_packaging
+                            REDIS-->>RESOLVER: null (no cached mapping)
+                            RESOLVER->>DB: SELECT InternalStatusId FROM StatusMappings<br/>WHERE TenantId IS NULL AND Source='Ozon' AND ExternalStatusKey='awaiting_packaging'
+                            DB-->>RESOLVER: StatusId=2 (InProgress)
+                            RESOLVER->>REDIS: SET status_map:guid-123:Ozon:awaiting_packaging 3600s
+                            RESOLVER-->>ADAPTER: StatusId=2
+                            
+                            Note over ADAPTER,DB: Сохранение заказов
+                            ADAPTER->>DB: BEGIN TRANSACTION
+                            ADAPTER->>DB: SELECT * FROM Orders WHERE ExternalId='12345' AND Marketplace='Ozon'
+                            DB-->>ADAPTER: null (new order)
+                            ADAPTER->>DB: INSERT INTO Orders (ExternalId, Marketplace, CustomerName, StatusId, CreatedAt)<br/>VALUES ('12345', 'Ozon', 'Петров Иван', 2, GETDATE())
+                            ADAPTER->>DB: INSERT INTO OrderItems (OrderId, Product, Quantity, Price)<br/>VALUES (newOrderId, 'Товар1', 2, 1500.00)
+                            ADAPTER->>DB: COMMIT
+                            
+                            Note over ADAPTER,REDIS: Кэширование результатов
+                            ADAPTER->>REDIS: SET order:romashka:12345 300s
+                            ADAPTER-->>BG: ImportResult: {imported: 15, updated: 3, errors: 0}
+                            
+                            Note over BG: Завершение импорта
+                            BG->>REDIS: PUBLISH notification:admin<br/>{type: "ImportCompleted", imported: 15, marketplace: "Ozon"}
+                            BG-->>BG: Job completed successfully
+                    </div>
+                </div>
+                
+                <div class="transition-arrow">↓ Переход к этапу 4: Проведение транзакции ↓</div>
+                
+                <div class="step-container">
+                    <div class="step-title"><span class="step-number">4</span>Проведение транзакции (Заказ поставщику)</div>
+                    <div class="step-details">
+                        <strong>Запрос:</strong> POST /api/transactions/execute<br/>
+                        <strong>Данные:</strong> {orderId: "order-789", transactionType: "PurchaseOrder", data: {supplierId: "sup-123", deliveryDate: "2024-01-15"}}<br/>
+                        <strong>Результат:</strong> Смена статуса заказа + создание документа в 1С
+                    </div>
+                </div>
+                
+                <div class="sequence-diagram-container">
+                    <div class="mermaid">
+                        sequenceDiagram
+                            participant U as Пользователь
+                            participant CMD as TransactionCommandHandler
+                            participant DB as Tenant DB<br/><span class="database-name">romashka_orders</span>
+                            participant ONEC as 1C API<br/><span class="ip-address">10.0.1.50</span>
+                            participant BG as Hangfire
+                            participant REDIS as Redis
+                            
+                            Note over U,REDIS: Этап 4: Проведение транзакции
+                            U->>CMD: ExecuteTransactionCommand<br/>{OrderId=order-789, TransactionType="PurchaseOrder"}
+                            
+                            Note over CMD,DB: Валидация и выполнение
+                            CMD->>DB: SELECT * FROM TransactionDefinitions<br/>WHERE Name='PurchaseOrder'
+                            DB-->>CMD: Definition {FormSchema=[...], OneCDocumentType="ReceiptOfGoods"}
+                            CMD->>DB: SELECT * FROM Orders WHERE Id=order-789
+                            DB-->>CMD: Order {Status="New", CustomerName="Иван Петров"}
+                            CMD->>CMD: Validate transaction rules
+                            
+                            Note over CMD,DB: Обновление заказа
+                            CMD->>DB: UPDATE Orders SET StatusId=2 (Processing)<br/>WHERE Id=order-789
+                            CMD->>DB: INSERT INTO TransactionRecords<br/>(OrderId=order-789, DefinitionId=purchase-order-def, InputData={...})
+                            
+                            Note over CMD,BG: Асинхронная синхронизация с 1С
+                            CMD->>BG: Enqueue SyncTo1CJob<br/>(TenantId=guid-123, OrderId=order-789)
+                            CMD->>REDIS: SET cache:order:order-789 300s
+                            CMD-->>U: 200 OK + TransactionResult
+                            
+                            Note over BG,ONEC: Фоновая обработка
+                            BG->>DB: GET Tenant ConnectionString
+                            BG->>ONEC: POST /receiptofgoods/product_json<br/>{DocumentNumber="DOC-001", Products=[...]}
+                            ONEC-->>BG: {DocumentId="1C-DOC-456", Status="Success"}
+                            BG->>DB: UPDATE TransactionRecords SET OneCStatus=Success, OneCId="1C-DOC-456"
+                            BG->>DB: UPDATE Orders SET StatusId=3 (Ordered)<br/>WHERE Id=order-789
+                            
+                            Note over BG,U: Уведомление пользователю
+                            BG->>REDIS: PUBLISH notification:user-456<br/>{type="OrderStatusChanged", orderId=order-789, newStatus="Ordered"}
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">Marketplace Integration Flow</div>
+                    <div class="bilingual-description">
+                        <div class="bilingual-en">Automated order synchronization from external marketplaces using adapter pattern. Handles status mapping, deduplication, and order enrichment with background job processing and caching optimization.</div>
+                        <div class="bilingual-ru">Автоматизированная синхронизация заказов из внешних маркетплейсов с использованием паттерна адаптер. Обрабатывает маппинг статусов, дедупликацию и обогащение заказов с фоновыми задачами и оптимизацией кэширования.</div>
+                    </div>
+                    <div class="entity-description">
+                        <strong>Process:</strong> Hangfire Job → Marketplace API → Adapter → StatusResolver → Database<br/>
+                        <strong>Components:</strong> ImportOrdersJob, OzonAdapter, StatusResolver, OrderEnricher<br/>
+                        <strong>Features:</strong> Deduplication, status mapping, error handling, retry logic
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">Status Mapping Strategy</div>
+                    <div class="bilingual-description">
+                        <div class="bilingual-en">Dynamic status resolution with fallback strategy. Uses tenant-specific mappings first, then global defaults, with Redis caching for performance optimization and automatic cache invalidation on changes.</div>
+                        <div class="bilingual-ru">Динамическое разрешение статусов со стратегией fallback. Использует tenant-specific маппинги первыми, затем глобальные значения по умолчанию, с Redis кэшированием для оптимизации производительности и автоматической инвалидацией кэша при изменениях.</div>
+                    </div>
+                    <div class="entity-description">
+                        <strong>Cache Strategy:</strong> status_map:{tenantId}:{marketplace}:{externalStatus}<br/>
+                        <strong>Fallback Order:</strong> Tenant → Global → Error<br/>
+                        <strong>TTL:</strong> 1 hour with manual invalidation<br/>
+                        <strong>Performance:</strong> >95% cache hit ratio for frequently used statuses
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">Order Deduplication Logic</div>
+                    <div class="bilingual-description">
+                        <div class="bilingual-en">Prevents duplicate order creation using composite unique key (ExternalId + Marketplace). Updates existing orders with new data while preserving audit trail and status history.</div>
+                        <div class="bilingual-ru">Предотвращает создание дубликатов заказов с использованием составного уникального ключа (ExternalId + Marketplace). Обновляет существующие заказы новыми данными, сохраняя аудит и историю статусов.</div>
+                    </div>
+                    <div class="entity-description">
+                        <strong>Check Logic:</strong> SELECT WHERE ExternalId='12345' AND Marketplace='Ozon'<br/>
+                        <strong>Update Strategy:</strong> Merge new data, preserve creation date, update status<br/>
+                        <strong>Audit Trail:</strong> Track all changes with timestamps and source
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">Order Enrichment Pipeline</div>
+                    <div class="bilingual-description">
+                        <div class="bilingual-en">Data enrichment process for imported orders. Adds customer details, product information, and calculated fields. Validates data completeness and applies business rules for order processing.</div>
+                        <div class="bilingual-ru">Процесс обогащения данных для импортированных заказов. Добавляет детали клиентов, информацию о продуктах и вычисляемые поля. Валидирует полноту данных и применяет бизнес-правила для обработки заказов.</div>
+                    </div>
+                    <div class="entity-description">
+                        <strong>Enrichment Steps:</strong> Customer lookup → Product validation → Price calculation → Tax computation<br/>
+                        <strong>Validation Rules:</strong> Required fields, business constraints, data format checks<br/>
+                        <strong>Output:</strong> Complete order ready for processing
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">Order Entity Flow</div>
+                    <div class="bilingual-description">
+                        <div class="bilingual-en">State machine pattern for order lifecycle management. Each status transition is validated through transaction definitions with business rules enforcement and audit trail maintenance.</div>
+                        <div class="bilingual-ru">Паттерн конечного автомата для управления жизненным циклом заказа. Каждый переход статуса валидируется через определения транзакций с принуждением бизнес-правил и поддержкой аудита.</div>
+                    </div>
+                    <div class="entity-description">
+                        <strong>Step 1:</strong> Created → Status: "New"<br/>
+                        <strong>Step 2:</strong> Transaction Started → Status: "Processing"<br/>
+                        <strong>Step 3:</strong> 1C Document Created → Status: "Ordered"<br/>
+                        <strong>Step 4:</strong> Goods Received → Status: "Received"
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">Database Switching Logic</div>
+                    <div class="bilingual-description">
+                        <div class="bilingual-en">Multi-tenant data access strategy using context switching. Master database stores tenant metadata and connection strings, while tenant databases contain isolated business data with separate connection pools.</div>
+                        <div class="bilingual-ru">Стратегия доступа к данным в мульти-тенантной среде с использованием переключения контекста. Master база хранит метаданные тенантов и строки подключения, в то время как tenant базы содержат изолированные бизнес-данные с отдельными пулами соединений.</div>
+                    </div>
+                    <div class="entity-description">
+                        <strong>Master DB (mysaas_master):</strong> Tenants, Users, Billing<br/>
+                        <strong>Tenant DB (romashka_orders):</strong> Orders, Transactions, AspNetUsers<br/>
+                        <strong>Context Switch:</strong> Based on TenantId from subdomain
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">Tenant Seeding Process</div>
+                    <div class="bilingual-description">
+                        <div class="bilingual-en">Automated database initialization for new tenants. Idempotent seeding process creates default statuses, transaction types, roles, and permissions ensuring immediate system usability after registration.</div>
+                        <div class="bilingual-ru">Автоматизированная инициализация базы данных для новых тенантов. Идемпотентный процесс наполнения создает статусы по умолчанию, типы транзакций, роли и права, обеспечивая немедленную пригодность системы к использованию после регистрации.</div>
+                    </div>
+                    <div class="entity-description">
+                        <strong>Seed Components:</strong> Order Statuses, Transaction Definitions, Roles & Permissions, Default Settings<br/>
+                        <strong>Process:</strong> Create DB → Apply Migrations → Run Seeder → Create Admin User<br/>
+                        <strong>Idempotency:</strong> Safe to run multiple times without data duplication
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">JWT Token Generation</div>
+                    <div class="bilingual-description">
+                        <div class="bilingual-en">Secure authentication token creation with tenant context. Contains user identity, tenant information, and permission claims for stateless API authentication with configurable expiration.</div>
+                        <div class="bilingual-ru">Создание безопасного токена аутентификации с контекстом тенанта. Содержит идентификацию пользователя, информацию о тенанте и claims прав для stateless аутентификации API с настраиваемым сроком действия.</div>
+                    </div>
+                    <div class="entity-description">
+                        <strong>Claims:</strong> {sub=user-456, tenant=guid-123, permissions=["Orders.Create", "Orders.View", "Transactions.Execute"]}<br/>
+                        <strong>Expiration:</strong> 1 hour (configurable)<br/>
+                        <strong>Signing:</strong> RSA private key with certificate validation
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">Permission Validation Flow</div>
+                    <div class="bilingual-description">
+                        <div class="bilingual-en">Runtime authorization check using cached permission data. Validates user access to specific operations with role-based permission resolution and caching for high-performance authorization decisions.</div>
+                        <div class="bilingual-ru">Проверка авторизации во время выполнения с использованием кэшированных данных прав. Валидирует доступ пользователя к конкретным операциям с разрешением прав на основе ролей и кэшированием для высокопроизводительных решений авторизации.</div>
+                    </div>
+                    <div class="entity-description">
+                        <strong>Process:</strong> Extract permissions from JWT → Cache lookup → Role resolution → Permission validation<br/>
+                        <strong>Cache Key:</strong> permissions:user-456<br/>
+                        <strong>Cache TTL:</strong> 1 hour with invalidation on role changes
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Multi-Tenant изоляция с реальными данными -->
+            <div class="section">
+                <h2>🏢 Multi-Tenant изоляция данных (детальная схема)</h2>
+                <p><strong>Пример:</strong> Три клиента (ООО Ромашка, ООО Солнце, ООО Ветер) с полным разделением данных</p>
+                
+                <div class="diagram-container">
+                    <div class="mermaid">
+                        graph TB
+                            subgraph "DNS Layer"
+                                DNS[*.mysaas.com<br/>Wildcard DNS]
+                                DNS1[romashka.mysaas.com<br/>→ 192.168.1.100]
+                                DNS2[solnce.mysaas.com<br/>→ 192.168.1.101]
+                                DNS3[veter.mysaas.com<br/>→ 192.168.1.102]
+                            end
+                            
+                            subgraph "Load Balancer"
+                                LB[Nginx<br/><span class="ip-address">192.168.1.5</span><br/>SSL Termination]
+                            end
+                            
+                            subgraph "Application Layer"
+                                APP[ASP.NET Core App<br/>Single Instance]
+                                MW[TenantMiddleware<br/>Subdomain → TenantId]
+                                AUTH[Identity Service<br/>JWT + Permissions]
+                            end
+                            
+                            subgraph "Database Layer"
+                                MASTER[(Master DB<br/><span class="database-name">mysaas_master</span><br/>Server: 10.0.1.10<br/>Tenants: 3 active)]
+                                
+                                subgraph "Tenant Databases (SQL Server)"
+                                    T1[(Romashka DB<br/><span class="database-name">romashka_orders</span><br/>Server: 10.0.1.20<br/>Size: 2GB)]
+                                    T2[(Solnce DB<br/><span class="database-name">solnce_orders</span><br/>Server: 10.0.1.21<br/>Size: 1.5GB)]
+                                    T3[(Veter DB<br/><span class="database-name">veter_orders</span><br/>Server: 10.0.1.22<br/>Size: 3GB)]
+                                end
+                            end
+                            
+                            subgraph "Cache Layer"
+                                REDIS[(Redis Cluster<br/><span class="database-name">redis:6379</span><br/>Server: 10.0.1.30)]
+                                
+                                subgraph "Cache Keyspaces"
+                                    GC[Global Cache<br/>tariffs, currencies]
+                                    TC1[Tenant1 Cache<br/>romashka:*]
+                                    TC2[Tenant2 Cache<br/>solnce:*]
+                                    TC3[Tenant3 Cache<br/>veter:*]
+                                end
+                            end
+                            
+                            subgraph "Background Jobs"
+                                HF[Hangfire<br/><span class="database-name">hangfire_db</span><br/>Server: 10.0.1.40]
+                                
+                                subgraph "Job Queues"
+                                    JQ1[Queue: romashka<br/>Jobs: 5 active]
+                                    JQ2[Queue: solnce<br/>Jobs: 3 active]
+                                    JQ3[Queue: veter<br/>Jobs: 8 active]
+                                end
+                            end
+                            
+                            subgraph "External Services"
+                                ONEC[1C:Предприятие<br/><span class="ip-address">10.0.1.50</span><br/>Database: 1c_prod]
+                                EMAIL[SendGrid<br/>smtp.sendgrid.net:587]
+                            end
+                            
+                            %% Connections
+                            DNS1 --> LB
+                            DNS2 --> LB
+                            DNS3 --> LB
+                            
+                            LB --> APP
+                            APP --> MW
+                            MW --> AUTH
+                            
+                            MW -->|Get tenant info| MASTER
+                            MASTER -->|Tenant: guid-123<br/>DB: romashka_orders| T1
+                            MASTER -->|Tenant: guid-456<br/>DB: solnce_orders| T2
+                            MASTER -->|Tenant: guid-789<br/>DB: veter_orders| T3
+                            
+                            AUTH -->|User auth| T1
+                            AUTH -->|User auth| T2
+                            AUTH -->|User auth| T3
+                            
+                            APP -->|Cache operations| REDIS
+                            REDIS --> GC
+                            REDIS --> TC1
+                            REDIS --> TC2
+                            REDIS --> TC3
+                            
+                            APP -->|Background jobs| HF
+                            HF --> JQ1
+                            HF --> JQ2
+                            HF --> JQ3
+                            
+                            JQ1 -->|Tenant context| T1
+                            JQ2 -->|Tenant context| T2
+                            JQ3 -->|Tenant context| T3
+                            
+                            APP -->|1C integration| ONEC
+                            APP -->|Email sending| EMAIL
+                            
+                            %% Styling
+                            style MASTER fill:#ff9999,stroke:#ff6666,stroke-width:3px
+                            style T1 fill:#99ff99,stroke:#66cc66,stroke-width:2px
+                            style T2 fill:#99ff99,stroke:#66cc66,stroke-width:2px
+                            style T3 fill:#99ff99,stroke:#66cc66,stroke-width:2px
+                            style REDIS fill:#ffcc99,stroke:#ff9966,stroke-width:2px
+                            style HF fill:#cc99ff,stroke:#9966cc,stroke-width:2px
+                            style MW fill:#e1f5fe,stroke:#81d4fa,stroke-width:3px
+                            style AUTH fill:#f3e5f5,stroke:#ce93d8,stroke-width:2px
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">Tenant Resolution Flow</div>
+                    <div class="russian-only">
+                        <strong>Запрос:</strong> https://romashka.mysaas.com/api/orders<br/>
+                        <strong>Шаг 1:</strong> DNS разрешает romashka.mysaas.com → 192.168.1.5<br/>
+                        <strong>Шаг 2:</strong> Nginx перенаправляет на ASP.NET Core<br/>
+                        <strong>Шаг 3:</strong> TenantMiddleware извлекает "romashka" из Host header<br/>
+                        <strong>Шаг 4:</strong> Запрос к Master DB: SELECT * FROM Tenants WHERE Subdomain='romashka'<br/>
+                        <strong>Шаг 5:</strong> Получение TenantId=guid-123, ConnectionString="Server=10.0.1.20;Database=romashka_orders"<br/>
+                        <strong>Шаг 6:</strong> Создание TenantDbContext с этой строкой подключения
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">Data Isolation Example</div>
+                    <div class="russian-only">
+                        <strong>Заказы Ромашки:</strong> [{Id: 1, Customer: "Иванов", TenantId: guid-123}]<br/>
+                        <strong>Заказы Солнца:</strong> [{Id: 1, Customer: "Петров", TenantId: guid-456}]<br/>
+                        <strong>Заказы Ветра:</strong> [{Id: 1, Customer: "Сидоров", TenantId: guid-789}]<br/>
+                        <strong>Примечание:</strong> ID заказов могут повторяться у разных тенантов, т.к. разные БД
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">Cache Isolation Strategy</div>
+                    <div class="russian-only">
+                        <strong>Глобальные ключи:</strong> tariffs:list, currencies:rates<br/>
+                        <strong>Ключи тенантов:</strong> romashka:orders:123, solnce:users:456, veter:products:789<br/>
+                        <strong>Ключи сессий:</strong> session:romashka:user-123, session:solnce:user-456<br/>
+                        <strong>TTL:</strong> Глобальные - 24ч, Тенанты - 1ч, Сессии - 30мин
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">Background Job Isolation</div>
+                    <div class="russian-only">
+                        <strong>Создание задачи:</strong> BackgroundJob.Enqueue(() => SyncOrders(tenantId))<br/>
+                        <strong>Назначение очереди:</strong> На основе tenantId → romashka/solnce/veter queue<br/>
+                        <strong>Контекст воркера:</strong> Каждый воркер обрабатывает только свою очередь<br/>
+                        <strong>Контекст БД:</strong> Воркер создает TenantDbContext для конкретного тенанта
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Итоговая сводка архитектуры -->
+            <div class="section">
+                <h2>📊 Итоговая сводка: Все компоненты и их взаимодействия</h2>
+                <p><strong>Полная карта системы:</strong> От DNS до базы данных с реальными названиями и IP адресами</p>
+                
+                <div class="diagram-container">
+                    <div class="mermaid">
+                        graph TB
+                            %% External Users
+                            subgraph "Пользователи (External)"
+                                USER1[Иван Иванов<br/>ООО Ромашка<br/><span class="ip-address">192.168.1.100</span>]
+                                USER2[Петр Петров<br/>ООО Солнце<br/><span class="ip-address">192.168.1.101</span>]
+                                USER3[Admin<br/>System Admin<br/><span class="ip-address">192.168.1.10</span>]
+                            end
+                            
+                            %% Infrastructure Layer
+                            subgraph "Infrastructure Layer"
+                                DNS[DNS Server<br/>*.mysaas.com<br/><span class="ip-address">8.8.8.8</span>]
+                                LB[Nginx Load Balancer<br/><span class="ip-address">192.168.1.5</span><br/>SSL: *.mysaas.com]
+                                FW[Firewall<br/><span class="ip-address">192.168.1.1</span>]
+                            end
+                            
+                            %% Application Servers
+                            subgraph "Application Servers"
+                                APP1[ASP.NET Core 1<br/><span class="ip-address">10.0.1.100</span><br/>CPU: 2 cores, RAM: 4GB]
+                                APP2[ASP.NET Core 2<br/><span class="ip-address">10.0.1.101</span><br/>CPU: 2 cores, RAM: 4GB]
+                            end
+                            
+                            %% Application Components
+                            subgraph "Application Components (on each server)"
+                                MW[TenantMiddleware<br/>Subdomain → TenantId]
+                                AUTH[Identity Service<br/>JWT + Permissions]
+                                API[REST API Controllers]
+                                UI[Blazor Components]
+                                CMD[Command Handlers]
+                                QRY[Query Handlers]
+                                BG[Hangfire Workers]
+                            end
+                            
+                            %% Database Servers
+                            subgraph "Database Servers"
+                                MASTER_DB[(Master DB Server<br/><span class="ip-address">10.0.1.10</span><br/>SQL Server 2022<br/>mysaas_master: 500MB)]
+                                
+                                subgraph "Tenant Database Servers"
+                                    T1_DB[(Tenant DB Server 1<br/><span class="ip-address">10.0.1.20</span><br/>romashka_orders: 2GB)]
+                                    T2_DB[(Tenant DB Server 2<br/><span class="ip-address">10.0.1.21</span><br/>solnce_orders: 1.5GB)]
+                                    T3_DB[(Tenant DB Server 3<br/><span class="ip-address">10.0.1.22</span><br/>veter_orders: 3GB)]
+                                end
+                                
+                                HF_DB[(Hangfire DB<br/><span class="ip-address">10.0.1.40</span><br/>hangfire: 100MB)]
+                            end
+                            
+                            %% Cache Servers
+                            subgraph "Cache Servers"
+                                REDIS_MASTER[(Redis Master<br/><span class="ip-address">10.0.1.30</span><br/>Memory: 8GB)]
+                                REDIS_SLAVE[(Redis Slave<br/><span class="ip-address">10.0.1.31</span><br/>Memory: 8GB)]
+                            end
+                            
+                            %% External Services
+                            subgraph "External Services"
+                                ONEC[1C:Предприятие<br/><span class="ip-address">10.0.1.50</span><br/>REST API: 1c.mysaas.local]
+                                SMTP[SendGrid<br/>smtp.sendgrid.net:587]
+                                OZON[Ozon API<br/>api.ozon.ru:443]
+                                WB[Wildberries API<br/>api.wildberries.ru:443]
+                            end
+                            
+                            %% Monitoring
+                            subgraph "Monitoring & Logging"
+                                PROM[Prometheus<br/><span class="ip-address">10.0.1.60</span>]
+                                GRAF[Grafana<br/><span class="ip-address">10.0.1.61</span>]
+                                LOG[ELK Stack<br/><span class="ip-address">10.0.1.62</span>]
+                            end
+                            
+                            %% Connections
+                            USER1 -->|HTTPS| DNS
+                            USER2 -->|HTTPS| DNS
+                            USER3 -->|HTTPS| DNS
+                            
+                            DNS --> LB
+                            LB --> FW
+                            FW --> APP1
+                            FW --> APP2
+                            
+                            APP1 --> MW
+                            APP2 --> MW
+                            
+                            MW --> AUTH
+                            AUTH --> API
+                            AUTH --> UI
+                            
+                            API --> CMD
+                            UI --> CMD
+                            CMD --> QRY
+                            
+                            MW -->|Tenant info| MASTER_DB
+                            AUTH -->|User auth| T1_DB
+                            AUTH -->|User auth| T2_DB
+                            AUTH -->|User auth| T3_DB
+                            
+                            CMD -->|Write/Read| T1_DB
+                            CMD -->|Write/Read| T2_DB
+                            CMD -->|Write/Read| T3_DB
+                            
+                            BG -->|Job storage| HF_DB
+                            BG -->|Tenant jobs| T1_DB
+                            BG -->|Tenant jobs| T2_DB
+                            BG -->|Tenant jobs| T3_DB
+                            
+                            APP1 -->|Cache| REDIS_MASTER
+                            APP2 -->|Cache| REDIS_MASTER
+                            REDIS_MASTER -->|Replication| REDIS_SLAVE
+                            
+                            BG -->|1C sync| ONEC
+                            AUTH -->|Email| SMTP
+                            BG -->|Marketplace sync| OZON
+                            BG -->|Marketplace sync| WB
+                            
+                            APP1 -->|Metrics| PROM
+                            APP2 -->|Metrics| PROM
+                            PROM --> GRAF
+                            
+                            APP1 -->|Logs| LOG
+                            APP2 -->|Logs| LOG
+                            BG -->|Logs| LOG
+                            
+                            %% Styling
+                            style USER1 fill:#e1f5fe,stroke:#81d4fa,stroke-width:2px
+                            style USER2 fill:#e1f5fe,stroke:#81d4fa,stroke-width:2px
+                            style USER3 fill:#fff3e0,stroke:#ffb74d,stroke-width:2px
+                            style MASTER_DB fill:#ff9999,stroke:#ff6666,stroke-width:3px
+                            style T1_DB fill:#99ff99,stroke:#66cc66,stroke-width:2px
+                            style T2_DB fill:#99ff99,stroke:#66cc66,stroke-width:2px
+                            style T3_DB fill:#99ff99,stroke:#66cc66,stroke-width:2px
+                            style REDIS_MASTER fill:#ffcc99,stroke:#ff9966,stroke-width:2px
+                            style MW fill:#e1f5fe,stroke:#81d4fa,stroke-width:3px
+                            style AUTH fill:#f3e5f5,stroke:#ce93d8,stroke-width:2px
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">Production Deployment Architecture</div>
+                    <div class="russian-only">
+                        Корпоративная стратегия развертывания с высокой доступностью и масштабируемостью. Реализует балансировку нагрузки, шардинг баз данных, кэширующие кластеры и комплексный мониторинг для production нагрузок.
+                    </div>
+                    <div class="entity-description">
+                        <strong>Окружение:</strong> Production on-premise или облако (AWS/Azure)<br/>
+                        <strong>Балансировка нагрузки:</strong> Nginx с SSL termination и health checks<br/>
+                        <strong>Масштабирование приложения:</strong> 2+ экземпляра ASP.NET Core за балансировщиком<br/>
+                        <strong>Масштабирование БД:</strong> Отдельные экземпляры SQL Server на группу тенантов<br/>
+                        <strong>Стратегия кэширования:</strong> Redis Master-Slave для высокой доступности<br/>
+                        <strong>Фоновая обработка:</strong> Hangfire с постоянным хранилищем<br/>
+                        <strong>Мониторинг:</strong> Prometheus + Grafana + ELK stack
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">Request Flow Summary</div>
+                    <div class="russian-only">
+                        Полный жизненный цикл запроса от браузера пользователя до ответа базы данных. Демонстрирует определение тенанта, аутентификацию, авторизацию, выполнение бизнес-логики и сохранение данных с оптимизацией производительности.
+                    </div>
+                    <div class="entity-description">
+                        <strong>1. Запрос пользователя:</strong> https://romashka.mysaas.com/api/orders<br/>
+                        <strong>2. Разрешение DNS:</strong> romashka.mysaas.com → 192.168.1.5 (Nginx)<br/>
+                        <strong>3. Балансировщик:</strong> Nginx → Экземпляр ASP.NET Core (10.0.1.100)<br/>
+                        <strong>4. Определение тенанта:</strong> Middleware извлекает "romashka" → TenantId=guid-123<br/>
+                        <strong>5. Аутентификация:</strong> JWT валидация → Права пользователя из кэша<br/>
+                        <strong>6. Авторизация:</strong> Проверка права "Orders.View"<br/>
+                        <strong>7. Бизнес-логика:</strong> Command Handler → Domain Entity → Database<br/>
+                        <strong>8. Доступ к БД:</strong> TenantDbContext(romashka_orders) → SQL Server<br/>
+                        <strong>9. Ответ:</strong> Данные заказа → JSON ответ → Браузер пользователя
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">Key Performance Indicators</div>
+                    <div class="russian-only">
+                        Критичные метрики производительности и соглашения об уровне обслуживания для production системы. Определяет цели по времени ответа, лимиты использования ресурсов и требования доступности для корпоративного развертывания.
+                    </div>
+                    <div class="entity-description">
+                        <strong>Время ответа:</strong> < 200мс для API вызовов<br/>
+                        <strong>Соединения с БД:</strong> Максимум 100 на пул тенанта<br/>
+                        <strong>Hit Ratio кэша:</strong> > 85% для часто используемых данных<br/>
+                        <strong>Пропускная способность фоновых задач:</strong> 1000+ задач/минуту<br/>
+                        <strong>Одновременные пользователи:</strong> 500+ на тенанта<br/>
+                        <strong>Время работы:</strong> 99.9% доступности SLA
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">Security Layers</div>
+                    <div class="russian-only">
+                        Комплексная реализация безопасности на всех уровнях системы. Реализует сетевую безопасность, безопасность приложений, защиту данных, аутентификацию, авторизацию и меры соответствия для корпоративных требований.
+                    </div>
+                    <div class="entity-description">
+                        <strong>Сетевая безопасность:</strong> Firewall, DDoS защита, VPN доступ<br/>
+                        <strong>Безопасность приложений:</strong> JWT токены, HTTPS везде, CORS<br/>
+                        <strong>Защита данных:</strong> Шифрование БД, изоляция тенантов, аудит логи<br/>
+                        <strong>Аутентификация:</strong> Многофакторная аутентификация, политики паролей, управление сессиями<br/>
+                        <strong>Авторизация:</strong> Ролевой доступ, система прав, безопасность на уровне данных<br/>
+                        <strong>Соответствие:</strong> GDPR, хранение данных, шифрование резервных копий
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">Scalability Strategy</div>
+                    <div class="russian-only">
+                        Многомерный подход к масштабированию для обработки роста. Реализует горизонтальное масштабирование серверов приложений, шардинг баз данных для данных тенантов и распределенное кэширование для оптимизации производительности.
+                    </div>
+                    <div class="entity-description">
+                        <strong>Масштабирование приложения:</strong> Балансировщик + множество экземпляров<br/>
+                        <strong>Масштабирование БД:</strong> База данных на тенанта или шардинг БД<br/>
+                        <strong>Масштабирование кэша:</strong> Redis кластер с consistent hashing<br/>
+                        <strong>Масштабирование фоновых задач:</strong> Несколько серверов Hangfire<br/>
+                        <strong>Масштабирование мониторинга:</strong> Распределенный сбор метрик
+                    </div>
+                </div>
+                
+                <div class="entity-details">
+                    <div class="entity-name">Disaster Recovery</div>
+                    <div class="russian-only">
+                        Планирование непрерывности бизнеса с процедурами резервного копирования и восстановления. Реализует автоматизированные резервные копии, географическую избыточность и цели времени восстановления для корпоративной надежности.
+                    </div>
+                    <div class="entity-description">
+                        <strong>Стратегия резервирования:</strong> Полные резервные копии ежедневно + логи транзакций ежечасно<br/>
+                        <strong>Цель времени восстановления (RTO):</strong> 4 часа<br/>
+                        <strong>Цель точки восстановления (RPO):</strong> 1 час<br/>
+                        <strong>Географическая избыточность:</strong> Кросс-региональная репликация<br/>
+                        <strong>Тестирование:</strong> Ежемесячные учения по восстановлению после сбоя
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Инициализация Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#667eea',
+                primaryTextColor: '#333',
+                primaryBorderColor: '#667eea',
+                lineColor: '#666',
+                secondaryColor: '#f8f9fa',
+                tertiaryColor: '#e8f5e8'
+            },
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            sequence: {
+                diagramMarginX: 50,
+                diagramMarginY: 20,
+                actorMargin: 80,
+                width: 200,
+                height: 80,
+                boxMargin: 20,
+                boxTextMargin: 15,
+                noteMargin: 20,
+                messageMargin: 30,
+                mirrorActors: false,
+                bottomMarginAdj: 20,
+                activation: {
+                    width: 15,
+                    height: 15
+                },
+                wrap: true,
+                wrapWidth: 250
+            }
+        });
+        
+        // Анимация появления элементов
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.module-card, .tech-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+        
+        // Интерактивность с диаграммами
+        document.querySelectorAll('.diagram-container').forEach(container => {
+            container.addEventListener('click', function() {
+                this.style.transform = 'scale(1.02)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 200);
+            });
+        });
+    </script>
+</body>
+</html>
