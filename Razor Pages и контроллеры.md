@@ -453,3 +453,482 @@ public class CancelOrderController : ControllerBase
 
 Это самая удобная и самая поддерживаемая архитектура которая существует на сегодня для ASP.NET. Она выдерживает проекты любого размера и остаётся удобной даже когда у тебя будет 100 контроллеров.
 
+
+Вот пример полноценного Blazor приложения с контроллером и вызовом данных через HTTP клиент.
+
+Структура проекта
+Создадим приложение с архитектурой:
+
+Backend API (Контроллеры)
+
+Blazor Frontend (Компоненты с вызовом API)
+
+1. Модель данных (Models/WeatherForecast.cs)
+csharp
+namespace BlazorAppWithAPI.Models;
+
+public class WeatherForecast
+{
+    public int Id { get; set; }
+    public DateTime Date { get; set; }
+    public int TemperatureC { get; set; }
+    public string? Summary { get; set; }
+    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+}
+2. Контроллер (Controllers/WeatherController.cs)
+csharp
+using Microsoft.AspNetCore.Mvc;
+using BlazorAppWithAPI.Models;
+
+namespace BlazorAppWithAPI.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class WeatherController : ControllerBase
+{
+    private static readonly string[] Summaries = new[]
+    {
+        "Freezing", "Bracing", "Chilly", "Cool", "Mild", 
+        "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
+    };
+
+    // GET: api/weather
+    [HttpGet]
+    public ActionResult<IEnumerable<WeatherForecast>> Get()
+    {
+        var forecasts = Enumerable.Range(1, 10).Select(index => new WeatherForecast
+        {
+            Id = index,
+            Date = DateTime.Now.AddDays(index),
+            TemperatureC = Random.Shared.Next(-20, 55),
+            Summary = Summaries[Random.Shared.Next(Summaries.Length)]
+        });
+
+        return Ok(forecasts);
+    }
+
+    // GET: api/weather/5
+    [HttpGet("{id}")]
+    public ActionResult<WeatherForecast> Get(int id)
+    {
+        if (id <= 0 || id > 10)
+            return NotFound($"Прогноз с ID {id} не найден");
+
+        var forecast = new WeatherForecast
+        {
+            Id = id,
+            Date = DateTime.Now.AddDays(id),
+            TemperatureC = Random.Shared.Next(-20, 55),
+            Summary = Summaries[Random.Shared.Next(Summaries.Length)]
+        };
+
+        return Ok(forecast);
+    }
+
+    // POST: api/weather
+    [HttpPost]
+    public ActionResult<WeatherForecast> Post([FromBody] WeatherForecast forecast)
+    {
+        // В реальном приложении здесь было бы сохранение в БД
+        forecast.Id = Random.Shared.Next(100, 1000);
+        return CreatedAtAction(nameof(Get), new { id = forecast.Id }, forecast);
+    }
+
+    // PUT: api/weather/5
+    [HttpPut("{id}")]
+    public IActionResult Put(int id, [FromBody] WeatherForecast forecast)
+    {
+        if (id != forecast.Id)
+            return BadRequest("ID в URL не совпадает с ID объекта");
+
+        // В реальном приложении здесь обновление в БД
+        return NoContent();
+    }
+
+    // DELETE: api/weather/5
+    [HttpDelete("{id}")]
+    public IActionResult Delete(int id)
+    {
+        // В реальном приложении здесь удаление из БД
+        return NoContent();
+    }
+}
+3. Настройка HttpClient (Program.cs)
+csharp
+using BlazorAppWithAPI.Components;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
+
+// Добавляем контроллеры
+builder.Services.AddControllers();
+
+// Настраиваем HttpClient для фронтенда
+builder.Services.AddScoped(sp => 
+    new HttpClient { BaseAddress = new Uri("https://localhost:5001") });
+
+// Добавляем сервис для работы с API
+builder.Services.AddScoped<WeatherService>();
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    app.UseHsts();
+}
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseAntiforgery();
+
+// Маппим контроллеры
+app.MapControllers();
+
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
+
+app.Run();
+4. Сервис для работы с API (Services/WeatherService.cs)
+csharp
+using BlazorAppWithAPI.Models;
+using System.Net.Http.Json;
+
+namespace BlazorAppWithAPI.Services;
+
+public class WeatherService
+{
+    private readonly HttpClient _httpClient;
+    private readonly ILogger<WeatherService> _logger;
+
+    public WeatherService(HttpClient httpClient, ILogger<WeatherService> logger)
+    {
+        _httpClient = httpClient;
+        _logger = logger;
+    }
+
+    // Получение всех прогнозов
+    public async Task<List<WeatherForecast>?> GetForecastsAsync()
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync("api/weather");
+            
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<List<WeatherForecast>>();
+            }
+            
+            _logger.LogError($"Ошибка получения данных: {response.StatusCode}");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при запросе к API");
+            throw;
+        }
+    }
+
+    // Получение прогноза по ID
+    public async Task<WeatherForecast?> GetForecastByIdAsync(int id)
+    {
+        try
+        {
+            return await _httpClient.GetFromJsonAsync<WeatherForecast>($"api/weather/{id}");
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            _logger.LogWarning($"Прогноз с ID {id} не найден");
+            return null;
+        }
+    }
+
+    // Создание нового прогноза
+    public async Task<WeatherForecast?> CreateForecastAsync(WeatherForecast forecast)
+    {
+        var response = await _httpClient.PostAsJsonAsync("api/weather", forecast);
+        response.EnsureSuccessStatusCode();
+        
+        return await response.Content.ReadFromJsonAsync<WeatherForecast>();
+    }
+
+    // Обновление прогноза
+    public async Task UpdateForecastAsync(int id, WeatherForecast forecast)
+    {
+        var response = await _httpClient.PutAsJsonAsync($"api/weather/{id}", forecast);
+        response.EnsureSuccessStatusCode();
+    }
+
+    // Удаление прогноза
+    public async Task DeleteForecastAsync(int id)
+    {
+        var response = await _httpClient.DeleteAsync($"api/weather/{id}");
+        response.EnsureSuccessStatusCode();
+    }
+}
+5. Blazor компонент для отображения и управления (Components/Pages/WeatherPage.razor)
+razor
+@page "/weather"
+@rendermode InteractiveServer
+@using BlazorAppWithAPI.Models
+@inject WeatherService WeatherService
+@inject ILogger<WeatherPage> Logger
+
+<PageTitle>Погода</PageTitle>
+
+<h1>Прогноз погоды</h1>
+
+@if (isLoading)
+{
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Загрузка...</span>
+    </div>
+}
+else if (errorMessage != null)
+{
+    <div class="alert alert-danger" role="alert">
+        @errorMessage
+    </div>
+}
+else
+{
+    @* Форма добавления нового прогноза *@
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Добавить новый прогноз</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 mb-2">
+                    <input @bind="newForecast.Date" type="date" class="form-control" placeholder="Дата" />
+                </div>
+                <div class="col-md-2 mb-2">
+                    <input @bind="newForecast.TemperatureC" type="number" class="form-control" placeholder="Температура °C" />
+                </div>
+                <div class="col-md-4 mb-2">
+                    <input @bind="newForecast.Summary" class="form-control" placeholder="Описание" />
+                </div>
+                <div class="col-md-3 mb-2">
+                    <button class="btn btn-success w-100" @onclick="AddForecast">
+                        <i class="bi bi-plus-circle"></i> Добавить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Таблица прогнозов *@
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Дата</th>
+                <th>Темп. °C</th>
+                <th>Темп. °F</th>
+                <th>Описание</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var forecast in forecasts)
+            {
+                <tr>
+                    <td>@forecast.Id</td>
+                    <td>@forecast.Date.ToShortDateString()</td>
+                    <td>@forecast.TemperatureC</td>
+                    <td>@forecast.TemperatureF</td>
+                    <td>@forecast.Summary</td>
+                    <td>
+                        <button class="btn btn-sm btn-info me-1" @onclick="() => EditForecast(forecast)">
+                            <i class="bi bi-pencil"></i> Редактировать
+                        </button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteForecast(forecast.Id)">
+                            <i class="bi bi-trash"></i> Удалить
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @* Модальное окно редактирования *@
+    @if (showEditModal)
+    {
+        <div class="modal show d-block" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Редактирование прогноза</h5>
+                        <button type="button" class="btn-close" @onclick="CloseEditModal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Дата</label>
+                            <input @bind="editingForecast!.Date" type="date" class="form-control" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Температура °C</label>
+                            <input @bind="editingForecast!.TemperatureC" type="number" class="form-control" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Описание</label>
+                            <input @bind="editingForecast!.Summary" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="CloseEditModal">Отмена</button>
+                        <button type="button" class="btn btn-primary" @onclick="UpdateForecast">Сохранить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop show"></div>
+    }
+}
+
+@code {
+    private List<WeatherForecast> forecasts = new();
+    private WeatherForecast newForecast = new();
+    private WeatherForecast? editingForecast;
+    private bool isLoading = true;
+    private string? errorMessage;
+    private bool showEditModal = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadForecasts();
+    }
+
+    private async Task LoadForecasts()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+            
+            var result = await WeatherService.GetForecastsAsync();
+            if (result != null)
+            {
+                forecasts = result;
+            }
+            else
+            {
+                errorMessage = "Не удалось загрузить данные";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Ошибка загрузки: {ex.Message}";
+            Logger.LogError(ex, "Ошибка загрузки прогнозов");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task AddForecast()
+    {
+        try
+        {
+            var added = await WeatherService.CreateForecastAsync(newForecast);
+            if (added != null)
+            {
+                await LoadForecasts();
+                newForecast = new WeatherForecast();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Ошибка при добавлении: {ex.Message}";
+        }
+    }
+
+    private void EditForecast(WeatherForecast forecast)
+    {
+        editingForecast = new WeatherForecast
+        {
+            Id = forecast.Id,
+            Date = forecast.Date,
+            TemperatureC = forecast.TemperatureC,
+            Summary = forecast.Summary
+        };
+        showEditModal = true;
+    }
+
+    private async Task UpdateForecast()
+    {
+        try
+        {
+            if (editingForecast != null)
+            {
+                await WeatherService.UpdateForecastAsync(editingForecast.Id, editingForecast);
+                await LoadForecasts();
+                CloseEditModal();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Ошибка при обновлении: {ex.Message}";
+        }
+    }
+
+    private async Task DeleteForecast(int id)
+    {
+        try
+        {
+            await WeatherService.DeleteForecastAsync(id);
+            await LoadForecasts();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Ошибка при удалении: {ex.Message}";
+        }
+    }
+
+    private void CloseEditModal()
+    {
+        showEditModal = false;
+        editingForecast = null;
+    }
+}
+6. Добавление ссылки в навигацию (Components/Layout/NavMenu.razor)
+razor
+<div class="nav-item px-3">
+    <NavLink class="nav-link" href="weather" Match="NavLinkMatch.Prefix">
+        <span class="bi bi-cloud-sun-fill" aria-hidden="true"></span> Погода
+    </NavLink>
+</div>
+7. Конфигурация для правильной работы (appsettings.json)
+json
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "ApiSettings": {
+    "BaseUrl": "https://localhost:5001"
+  }
+}
+Особенности реализации:
+Контроллер - предоставляет полноценный REST API с CRUD операциями
+
+Сервис - инкапсулирует логику работы с API
+
+Компонент Blazor - предоставляет UI для взаимодействия с данными
+
+Модальное окно - для редактирования записей
+
+Обработка ошибок - try-catch блоки и логирование
+
+Загрузка данных - индикатор загрузки
+
+Это приложение демонстрирует полноценное взаимодействие Blazor с бэкенд API через HTTP запросы.
+
